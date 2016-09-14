@@ -8,13 +8,40 @@ from domonit.logs import Logs
 from domonit.process import Process
 from domonit.changes import Changes
 from domonit.stats import Stats
-
+import urllib
 
 import json
 
-
 c = Containers()
 i = Ids()
+
+responseVar = urllib.urlopen('http://localhost:8222/varz')
+responseConn = urllib.urlopen('http://localhost:8222/connz')
+responseSub = urllib.urlopen('http://localhost:8222/subsz')
+
+JsonVar = json.loads(responseVar.read())
+JsonConn = json.loads(responseConn.read())
+JsonSub = json.loads(responseSub.read())
+
+connectionNum = JsonVar["total_connections"]
+subscriptionsNum = JsonVar["subscriptions"]
+slowConsumers = JsonVar["slow_consumers"]
+
+SubsNum = JsonSub["num_subscriptions"]
+ConnNum = JsonConn["num_connections"]
+print ("NATS parameters needed for scaling a system ")
+print (connectionNum)
+print (subscriptionsNum)
+print (slowConsumers)
+
+print (SubsNum)
+print(ConnNum)
+
+if connectionNum > 100 | subscriptionsNum > 100 | slowConsumers > 100:
+    print ("You need to scale up the system")
+else:
+    print("No scaling is need in the system")
+
 
 print ("Number of containers is : %s " % (sum(1 for i in i.ids())))
 
@@ -24,12 +51,12 @@ if __name__ == "__main__":
 
         ins = Inspect(c_id)
         sta = Stats(c_id)
-        proc = Process(c_id, ps_args = "aux")
+        proc = Process(c_id, ps_args="aux")
 
         # Container name
         print ("\n#Container name")
         print ins.name()
- 
+
         # Container id
         print ("\n#Container id")
         print ins.id()
@@ -62,7 +89,7 @@ if __name__ == "__main__":
         # The number of times that a process of the cgroup triggered a "major fault"
         print ("\n#The number of times that a process of the cgroup triggered a major fault")
         print sta.memory_stats_stats_pgmajfault()
-  
+
 
         # Same output as ps aux in *nix
         print("\n#Same output as ps aux in *nix")
